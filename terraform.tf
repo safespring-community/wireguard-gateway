@@ -99,15 +99,3 @@ resource "openstack_compute_instance_v2" "wg" {
   }
 }
 
-resource "openstack_compute_instance_v2" "dummy" {
-  name            = "private-dummy-host"
-
-  flavor_name     = "lb.small"
-  image_name        = "ubuntu-20.04-server-cloudimg-amd64-20201102"
-  security_groups = [ "wireguard-internal" ]
-  key_pair        = "wireguard"
-
-  network {
-    name = "private"
-  }
-}
