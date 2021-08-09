@@ -1,0 +1,24 @@
+[Interface]
+Address = {{ item.item.value.private_ip }}/24
+PrivateKey = {{ item['content'] | b64decode | replace('\n', '')}}
+
+{% if item.item.value.wg_client_peer_routing_enabled %}
+
+# Add static route to safespring private net (10.64.0.0/16) via on-prem wg-peer in order to 
+# Reach your project's hosts via private ip-adresses.
+# I.e. #ip route add 10.64.0.0/16 via <ip-of-your-on-prem-wg-peer>
+# Also remember to enable ipv4 forwarding on that host. I.e. #sysctl -w net.ipv4.ip_forward=1 
+# and make it permanent 
+
+PostUp = iptables -A FORWARD -i %i -j ACCEPT;iptables -t nat -A POSTROUTING -o %i -j MASQUERADE
+PostDown = iptables -A FORWARD -i %i -j ACCEPT;iptables -t nat -D POSTROUTING -o %i -j MASQUERADE
+{% endif %}
+
+{% if item.item.value.wg_dns_enabled %}
+DNS = {{ dns_server }}
+{% endif %}
+
+[Peer]
+PublicKey = {{ wg_publickey['content'] | b64decode | replace('\n', '')}}
+Endpoint = {{ wg_public_ipv4['content'] | replace('\n', '')}}:{{ wg_listen_port }}
+AllowedIPs = {{ wg_allowed_ips }}

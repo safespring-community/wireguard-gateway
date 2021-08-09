@@ -1,0 +1,74 @@
+---
+- name: Create Wireguard peer config directory
+  file:
+    path: "{{ wg_conf_dir.path }}/{{ item.value.name }}"
+    state: directory
+  with_dict: "{{ wg_peer_list }}"
+  when: (item.value.remove == False)
+
+- name: remove Wireguard peer config directory
+  file:
+    path: "{{ wg_conf_dir.path }}/{{ item.value.name }}"
+    state: absent
+  with_dict: "{{ wg_peer_list }}"
+  when: (item.value.remove == True)
+
+- name: Generate Wireguard peer keys
+  shell: |
+    if [ ! -f {{ wg_conf_dir.path }}/{{ item.value.name }}/privatekey ]
+      then
+        cd {{ wg_conf_dir.path }}/{{ item.value.name }}
+        wg genkey | tee privatekey | wg pubkey > publickey
+    fi 
+    exit 0
+  when: (item.value.remove == False)
+  with_dict: "{{ wg_peer_list }}"
+
+- name: Read peer public key
+  slurp:
+    src: "{{ wg_conf_dir.path }}/{{ item.value.name }}/publickey"
+  with_dict: "{{ wg_peer_list }}"
+  register: wg_peers_publickey
+  when: (item.value.remove == False)
+
+- name: Read peer private key
+  slurp:
+    src: "{{ wg_conf_dir.path }}/{{ item.value.name }}/privatekey"
+  with_dict: "{{ wg_peer_list }}"
+  register: wg_peers_privatekey
+  when: (item.value.remove == False)
+
+- name: Generate Wireguard server config
+  template:
+    src: "wg0-server.j2"
+    dest: "{{ wg_conf_dir.path }}/wg0.conf"
+    mode: 0640
+    backup: yes
+  loop: "{{ wg_peers_publickey.results }}"
+  when: (item.item.value.remove == False)
+  notify: restart wg0
+
+- name: Start Wireguard server
+  systemd: 
+    name: "wg-quick@wg0"
+    state: started
+    enabled: yes
+
+- setup:
+    gather_subset: "network"
+
+- name: Generate Wireguard peer config
+  template:
+    src: "wg0-peer.j2"
+    dest: "{{ wg_conf_dir.path }}/{{ item.item.value.name }}/wg0.conf"
+  loop: "{{ wg_peers_privatekey.results }}"
+  when: (item.item.value.remove == False)
+  register: wg_peers_profile
+  notify: restart wg0
+
+- name: Fetch Wireguard peers configs
+  fetch: 
+    src: "{{ wg_conf_dir.path }}/{{ item.item.item.value.name }}/wg0.conf"
+    dest: "{{ lookup('env', 'PWD') }}"
+  loop: "{{ wg_peers_profile.results }}"
+  when: (item.item.item.value.remove == False)

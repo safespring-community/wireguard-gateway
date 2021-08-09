@@ -1,0 +1,21 @@
+galaxy_info:
+  author: Jarle Bjørgeengen
+  description: Ansible role to install and configure wireguard server.
+  company: Safespring AS
+
+  # If the issue tracker for your role is not on github, uncomment the
+  # next line and provide a value
+  # issue_tracker_url: http://example.com/issue/tracker
+
+  # Some suggested licenses:
+  # - BSD (default)
+  # - MIT
+  # - GPLv2
+  # - GPLv3
+  # - Apache
+  # - CC-BY
+  license: license (GPLv2, CC-BY, etc)
+
+  min_ansible_version: 2.4
+
+dependencies: []

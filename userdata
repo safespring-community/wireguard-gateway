@@ -1,0 +1,13 @@
+#cloud-config
+output: {all: '| tee -a /var/log/cloud-init-output.log'}
+manage_etc_hosts: true
+write_files:
+ - content: |
+     #!/bin/sh
+     [ "$IFACE" != ens4 ] && exit 0
+     ip route del default dev ens4
+   path: /etc/networkd-dispatcher/routable.d/50-delete-second-default-gw
+   permissions: '0755'
+runcmd:
+ - ip route del default dev ens4
+ - chmod +x /etc/networkd-dispatcher/routable.d/50-delete-second-default-gw 

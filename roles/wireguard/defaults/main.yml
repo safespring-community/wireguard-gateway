@@ -1,0 +1,5 @@
+default_route: false
+wg_private_ip: "192.168.66.1"
+wg_listen_port: "51820"
+wg_allowed_ips: "0.0.0.0/0,::/0"
+dns_server: "89.32.32.32"

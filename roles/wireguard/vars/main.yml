@@ -1,0 +1,5 @@
+---
+wg_peer_list:
+  peer_1: { name: "peer_1", private_ip: "192.168.66.2", wg_dns_enabled: false, remove: false ,wg_client_peer_routing_enabled: true }
+wg_allowed_ips: "192.168.66.0/24,10.64.0.0/16"
+

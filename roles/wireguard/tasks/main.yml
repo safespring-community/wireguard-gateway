@@ -1,0 +1,12 @@
+---
+- include_tasks: install.yml
+  tags: install
+
+- include_tasks: configure.yml
+  tags: configure
+
+- include_tasks: system.yml
+  tags: system
+
+- include_tasks: peers.yml
+  tags: peers

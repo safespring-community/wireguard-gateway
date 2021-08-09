@@ -1,0 +1,18 @@
+---
+- name: Wait 600 seconds for target connection to become reachable/usable
+  wait_for_connection:
+
+- name: gather facts
+  setup:
+
+- name: Update aptitude
+  apt:
+    upgrade: full
+    update_cache: yes
+    autoclean: yes
+    autoremove: yes
+
+- name: Install wireguard
+  apt:
+    name: "wireguard"
+    state: present

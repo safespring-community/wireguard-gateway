@@ -1,0 +1,5 @@
+- hosts: os_metadata_role=wireguard
+  gather_facts: no
+  become: true
+  roles:
+    - wireguard
