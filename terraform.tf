@@ -1,15 +1,4 @@
 
-#resource "openstack_blockstorage_volume_v2" "root" {
-#  name = "rootdisk"
-#  size = 1
-#}
-
-#resource "openstack_compute_volume_attach_v2" "va_root" {
-#  instance_id = "${openstack_compute_instance_v2.wg.id}"
-#  volume_id   = "${openstack_blockstorage_volume_v2.root.id}"
-#}
-
-
 resource "openstack_compute_keypair_v2" "wg" {
   name       = "wireguard"
   public_key = "${chomp(file(var.public_key_path))}"
@@ -90,12 +79,22 @@ resource "openstack_compute_instance_v2" "wg" {
     name = "public"
   }
 
-  network {
-    name = "private"
-  }
-
   metadata = {
     role             = "wireguard"
+  }
+}
+
+# Dummy host for testing access to private only instance
+resource "openstack_compute_instance_v2" "dummy" {
+  name            = "private-dummy-host"
+
+  flavor_name     = "lb.small"
+  image_name        = "ubuntu-20.04-server-cloudimg-amd64-20201102"
+  security_groups = [ "wireguard-internal" ]
+  key_pair        = "wireguard"
+
+  network {
+    name = "private"
   }
 }
 

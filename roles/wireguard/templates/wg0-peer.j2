@@ -22,3 +22,4 @@ DNS = {{ dns_server }}
 PublicKey = {{ wg_publickey['content'] | b64decode | replace('\n', '')}}
 Endpoint = {{ wg_public_ipv4['content'] | replace('\n', '')}}:{{ wg_listen_port }}
 AllowedIPs = {{ wg_allowed_ips }}
+PersistentKeepalive = 25
