@@ -70,7 +70,7 @@ resource "openstack_compute_instance_v2" "wg" {
   name            = "wireguard-gateway"
 
   flavor_name     = "lb.small"
-  image_name        = "ubuntu-20.04-server-cloudimg-amd64-20201102"
+  image_name        = "ubuntu-20.04"
   security_groups = [ "wireguard-external","wireguard-internal" ]
   key_pair        = "wireguard"
   user_data       = file("./userdata")
