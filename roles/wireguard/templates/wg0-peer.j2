@@ -4,7 +4,7 @@ PrivateKey = {{ item['content'] | b64decode | replace('\n', '')}}
 
 {% if item.item.value.wg_client_peer_routing_enabled %}
 
-# Add static route to safespring private net (10.64.0.0/16) via on-prem wg-peer in order to 
+# Add static route to safespring private net ( e.g. 10.64.0.0/16) via on-prem wg-peer in order to 
 # Reach your project's hosts via private ip-adresses.
 # I.e. #ip route add 10.64.0.0/16 via <ip-of-your-on-prem-wg-peer>
 # Also remember to enable ipv4 forwarding on that host. I.e. #sysctl -w net.ipv4.ip_forward=1 
