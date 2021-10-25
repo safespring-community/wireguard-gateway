@@ -5,6 +5,12 @@ You use this setup to enable a wireguard based VPN-tunnel
 from your premises to hosts in your Safespring compute (v2)
 project.
 
+**NB:** This setup will only take care of traffic initiated from the "on premise" side of the tunnel.
+If you need to go the other direction, the traffic **must** be encapsulated in a tunnel all the way from
+the instance in safespring's new platfrom (with calico L3 networking only). Otherwise packets destined
+towards any rfc1918 (private subnets) will be ignored on the way out because the calico router won't have
+a valid next hop.
+
 The script `setup-wg.sh` will:
 
 - provison a wireguard server in your projectattached to the ^public` network
