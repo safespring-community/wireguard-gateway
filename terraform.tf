@@ -1,88 +1,49 @@
 
 resource "openstack_compute_keypair_v2" "wg" {
   name       = "wireguard"
-  public_key = "${chomp(file(var.public_key_path))}"
+  public_key = chomp(file("./id_rsa.pub")) # Replace with the path to your ssh pubkey
 }
 
-resource "openstack_networking_secgroup_v2" "wg" {
-  name        = "wireguard-external"
-  description = "Wireguard access"
+module external-sg {
+   source = "github.com/safespring-community/terraform-modules/v2-compute-security-group"
+   name = "wg-external"
+   description = "External access to wireguard server"
+   rules = [
+     {
+       ip_protocol = "udp"
+       to_port = "51820"
+       from_port = "51820"
+       cidr = "0.0.0.0/0" # Change this' to tighten up access to wirguard port
+     },
+     {
+       ip_protocol = "tcp"
+       to_port = "22"
+       from_port = "22"
+       cidr = "0.0.0.0/0" # Change this to tighten up access to ssh
+     }
+
+   ]
 }
 
-
-resource "openstack_networking_secgroup_rule_v2" "wg-cidr" {
-  direction         = "ingress"
-  ethertype         = "IPv4"
-  count             = "${length(var.allow_wg_from_v4)}"
-  security_group_id = "${openstack_networking_secgroup_v2.wg.id}"
-  protocol          = "udp"
-  port_range_min    = 51820
-  port_range_max    = 51820
-  remote_ip_prefix  = "${var.allow_wg_from_v4[count.index]}"
+module internal-sg {
+   source = "github.com/safespring-community/terraform-modules/v2-compute-interconnect-security-group"
+   name = "wg-internal"
+   description = "Internal access "
 }
 
-resource "openstack_networking_secgroup_rule_v2" "ssh-cidr" {
-  direction         = "ingress"
-  ethertype         = "IPv4"
-  security_group_id = "${openstack_networking_secgroup_v2.wg.id}"
-  count             = "${length(var.allow_ssh_from_v4)}"
-  protocol          = "tcp"
-  port_range_min    = 22
-  port_range_max    = 22
-  remote_ip_prefix  = "${var.allow_ssh_from_v4[count.index]}"
+module wg_server {
+  source = "github.com/safespring-community/terraform-modules/v2-compute-local-disk"
+  key_pair_name   = openstack_compute_keypair_v2.wg.name
+  security_groups = [ module.internal-sg.name , module.external-sg.name ]
+  instance_count  = 1
+  prefix          = "wireguard-gateway"
+  domain_name     = "local"
+  flavor          = "lb.small"
+  image           = "ubuntu-20.04"
+  network         = "public"
+  role            = "wireguard"
 }
 
-resource "openstack_networking_secgroup_rule_v2" "all-icmp" {
-  direction         = "ingress"
-  ethertype         = "IPv4"
-  security_group_id = "${openstack_networking_secgroup_v2.wg.id}"
-  protocol          = "icmp"
-  remote_ip_prefix  = "0.0.0.0/0"
-}
-
-resource "openstack_compute_secgroup_v2" "wg-internal" {
-  name        = "wireguard-internal"
-  description = "Wireguard inter node access"
-
-  rule {
-    ip_protocol = "icmp"
-    from_port   = "-1"
-    to_port     = "-1"
-    cidr        = "0.0.0.0/0"
-  }
-
-  rule {
-    ip_protocol = "tcp"
-    from_port   = "1"
-    to_port     = "65535"
-    self        = true
-  }
-
-  rule {
-    ip_protocol = "udp"
-    from_port   = "1"
-    to_port     = "65535"
-    self        = true
-  }
-}
-
-resource "openstack_compute_instance_v2" "wg" {
-  name            = "wireguard-gateway"
-
-  flavor_name     = "lb.small"
-  image_name        = "ubuntu-20.04"
-  security_groups = [ "wireguard-external","wireguard-internal" ]
-  key_pair        = "wireguard"
-  user_data       = file("./userdata")
-
-  network {
-    name = "public"
-  }
-
-  metadata = {
-    role             = "wireguard"
-  }
-}
 
 # Dummy host for testing access to private only instance
 #resource "openstack_compute_instance_v2" "dummy" {
