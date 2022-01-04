@@ -5,7 +5,7 @@ resource "openstack_compute_keypair_v2" "wg" {
 }
 
 module external-sg {
-   source = "github.com/safespring-community/terraform-modules/v2-compute-security-group"
+   source = "github.com/safespring-community/terraform-modules//v2-compute-security-group?ref=v0.6.1"
    name = "wg-external"
    description = "External access to wireguard server"
    rules = [
@@ -26,13 +26,13 @@ module external-sg {
 }
 
 module internal-sg {
-   source = "github.com/safespring-community/terraform-modules/v2-compute-interconnect-security-group"
+   source = "github.com/safespring-community/terraform-modules//v2-compute-interconnect-security-group?ref=v0.6.1"
    name = "wg-internal"
    description = "Internal access "
 }
 
 module wg_server {
-  source = "github.com/safespring-community/terraform-modules/v2-compute-local-disk"
+  source = "github.com/safespring-community/terraform-modules//v2-compute-local-disk?ref=v0.6.1"
   key_pair_name   = openstack_compute_keypair_v2.wg.name
   security_groups = [ module.internal-sg.name , module.external-sg.name ]
   instance_count  = 1
