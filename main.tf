@@ -1,11 +1,11 @@
 
 resource "openstack_compute_keypair_v2" "wg" {
   name       = "wireguard"
-  public_key = chomp(file("./id_rsa.pub")) # Replace with the path to your ssh pubkey
+  public_key = chomp(file("~/wireguard.pub")) # Replace with the path to your ssh pubkey
 }
 
 module external-sg {
-   source = "github.com/safespring-community/terraform-modules//v2-compute-security-group?ref=v0.6.1"
+   source = "github.com/safespring-community/terraform-modules/v2-compute-security-group?ref=v0.6.1"
    name = "wg-external"
    description = "External access to wireguard server"
    rules = [
@@ -26,7 +26,7 @@ module external-sg {
 }
 
 module internal-sg {
-   source = "github.com/safespring-community/terraform-modules//v2-compute-interconnect-security-group?ref=v0.6.1"
+   source = "github.com/safespring-community/terraform-modules/v2-compute-interconnect-security-group?ref=v0.6.1"
    name = "wg-internal"
    description = "Internal access "
 }
@@ -38,7 +38,7 @@ module wg_server {
   instance_count  = 1
   prefix          = "wireguard-gateway"
   domain_name     = "local"
-  flavor          = "lb.small"
+  flavor          = "l2.c2r4.100"           # Smallest with local disk, which wg_server module requires
   image           = "ubuntu-20.04"
   network         = "public"
   role            = "wireguard"
@@ -48,10 +48,9 @@ module wg_server {
 # Dummy host for testing access to private only instance
 #resource "openstack_compute_instance_v2" "dummy" {
 #  name            = "private-dummy-host"
-#
-#  flavor_name     = "lb.small"
+#  flavor_name          = "l2.c2r4.100"           # Smallest with local disk, which wg_server module requires
 #  image_name        = "ubuntu-20.04"
-#  security_groups = [ "wireguard-internal" ]
+#  security_groups = [ "wg-internal" ]
 #  key_pair        = "wireguard"
 #
 #  network {

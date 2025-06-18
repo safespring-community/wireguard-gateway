@@ -11,6 +11,10 @@ the instance in safespring's new platfrom (with calico L3 networking only). Othe
 towards any rfc1918 (private subnets) will be ignored on the way out because the calico router won't have
 a valid next hop.
 
+Start by downloading the connection file from the SafeSpring Dashboard under API Access -> Download OpenStack RC File -> "OpenStack RC File"  
+chmod the file with `chmod u+x <path to file>` and then run it.  
+After this, run setup-wg.sh.
+
 The script `setup-wg.sh` will:
 
 - provison a wireguard server in your projectattached to the ^public` network
